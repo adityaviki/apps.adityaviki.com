@@ -43,6 +43,16 @@ export async function createShortNote(formData: FormData) {
     return { error: "Content is required" };
   }
 
+  if (tagIds.length > 0) {
+    const ownedTags = await prisma.tag.findMany({
+      where: { id: { in: tagIds }, userId: session.user.id },
+      select: { id: true },
+    });
+    if (ownedTags.length !== tagIds.length) {
+      return { error: "Invalid tags" };
+    }
+  }
+
   await prisma.shortNote.create({
     data: {
       title: title || null,
@@ -66,6 +76,16 @@ export async function updateShortNote(id: string, formData: FormData) {
 
   if (!content?.trim()) {
     return { error: "Content is required" };
+  }
+
+  if (tagIds.length > 0) {
+    const ownedTags = await prisma.tag.findMany({
+      where: { id: { in: tagIds }, userId: session.user.id },
+      select: { id: true },
+    });
+    if (ownedTags.length !== tagIds.length) {
+      return { error: "Invalid tags" };
+    }
   }
 
   await prisma.shortNote.update({

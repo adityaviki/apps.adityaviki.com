@@ -2,6 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { sanitizeEditorHtml } from "@/lib/sanitize";
 import { startOfMonth, endOfMonth } from "date-fns";
 
 export async function upsertDailyNote(dateStr: string) {
@@ -41,15 +42,16 @@ export async function updateDailyNoteContent(dateStr: string, content: string) {
   if (!session?.user?.id) throw new Error("Unauthorized");
 
   const date = new Date(dateStr + "T00:00:00.000Z");
+  const sanitized = sanitizeEditorHtml(content);
 
   await prisma.dailyNote.upsert({
     where: {
       userId_date: { userId: session.user.id, date },
     },
-    update: { content },
+    update: { content: sanitized },
     create: {
       date,
-      content,
+      content: sanitized,
       userId: session.user.id,
     },
   });

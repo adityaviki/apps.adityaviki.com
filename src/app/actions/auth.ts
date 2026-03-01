@@ -14,6 +14,14 @@ export async function register(formData: FormData) {
     return { error: "Email and password are required" };
   }
 
+  if (password.length < 6) {
+    return { error: "Password must be at least 6 characters" };
+  }
+
+  if (process.env.REGISTRATION_DISABLED === "true") {
+    return { error: "Registration is currently disabled" };
+  }
+
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     return { error: "User already exists" };

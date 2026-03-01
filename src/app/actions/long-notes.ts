@@ -2,6 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { sanitizeEditorHtml } from "@/lib/sanitize";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -44,6 +45,13 @@ export async function createLongNote(formData: FormData) {
     return { error: "Title is required" };
   }
 
+  if (folderId) {
+    const folder = await prisma.folder.findUnique({
+      where: { id: folderId, userId: session.user.id },
+    });
+    if (!folder) return { error: "Folder not found" };
+  }
+
   const note = await prisma.longNote.create({
     data: {
       title,
@@ -62,7 +70,7 @@ export async function updateLongNoteContent(id: string, content: string) {
 
   await prisma.longNote.update({
     where: { id, userId: session.user.id },
-    data: { content },
+    data: { content: sanitizeEditorHtml(content) },
   });
 }
 
@@ -72,6 +80,13 @@ export async function updateLongNote(id: string, formData: FormData) {
 
   const title = formData.get("title") as string;
   const folderId = formData.get("folderId") as string;
+
+  if (folderId) {
+    const folder = await prisma.folder.findUnique({
+      where: { id: folderId, userId: session.user.id },
+    });
+    if (!folder) return { error: "Folder not found" };
+  }
 
   await prisma.longNote.update({
     where: { id, userId: session.user.id },

@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id             String      @id @default(cuid())
+  email          String      @unique
+  hashedPassword String
+  name           String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  shortNotes ShortNote[]
+  longNotes  LongNote[]
+  dailyNotes DailyNote[]
+  folders    Folder[]
+  tags       Tag[]
+}
+
+model ShortNote {
+  id        String   @id @default(cuid())
+  title     String?
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tags Tag[]
+
+  @@index([userId])
+}
+
+model Tag {
+  id   String @id @default(cuid())
+  name String
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  shortNotes ShortNote[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model Folder {
+  id   String @id @default(cuid())
+  name String
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  longNotes LongNote[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model LongNote {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  folderId String?
+  folder   Folder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([folderId])
+}
+
+model DailyNote {
+  id        String   @id @default(cuid())
+  date      DateTime @db.Date
+  content   String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+}

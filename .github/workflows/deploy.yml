@@ -1,0 +1,36 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Deploy to server
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H 139.59.8.45 >> ~/.ssh/known_hosts
+
+          rsync -avz --delete .next/standalone/ root@139.59.8.45:/var/www/apps.adityaviki.com/
+          rsync -avz .next/static root@139.59.8.45:/var/www/apps.adityaviki.com/.next/
+          rsync -avz public/ root@139.59.8.45:/var/www/apps.adityaviki.com/public/
+          rsync -avz prisma/ root@139.59.8.45:/var/www/apps.adityaviki.com/prisma/
+          rsync -avz prisma.config.ts root@139.59.8.45:/var/www/apps.adityaviki.com/prisma.config.ts
+
+          ssh root@139.59.8.45 "cd /var/www/apps.adityaviki.com && npm install prisma dotenv --save-dev && npx prisma migrate deploy && systemctl restart apps-adityaviki"

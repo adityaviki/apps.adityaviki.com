@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import Link from "next/link";
 import { login } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,12 +61,6 @@ export default function LoginPage() {
           <Button type="submit" className="w-full rounded-xl h-11 text-sm font-semibold shadow-md shadow-primary/20" disabled={pending}>
             {pending ? "Signing in..." : "Sign In"}
           </Button>
-          <p className="text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <Link href="/register" className="font-medium text-primary hover:underline">
-              Register
-            </Link>
-          </p>
         </CardFooter>
       </form>
     </Card>

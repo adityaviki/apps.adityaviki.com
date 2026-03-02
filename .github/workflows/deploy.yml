@@ -28,10 +28,10 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H 139.59.8.45 >> ~/.ssh/known_hosts
 
-          rsync -avz --delete .next/standalone/ root@139.59.8.45:/var/www/apps.adityaviki.com/
+          rsync -avz --delete --exclude='.env' --exclude='node_modules' .next/standalone/ root@139.59.8.45:/var/www/apps.adityaviki.com/
           rsync -avz .next/static root@139.59.8.45:/var/www/apps.adityaviki.com/.next/
           rsync -avz public/ root@139.59.8.45:/var/www/apps.adityaviki.com/public/
           rsync -avz prisma/ root@139.59.8.45:/var/www/apps.adityaviki.com/prisma/
           rsync -avz prisma.config.ts root@139.59.8.45:/var/www/apps.adityaviki.com/prisma.config.ts
 
-          ssh root@139.59.8.45 "cd /var/www/apps.adityaviki.com && npm install prisma dotenv --save-dev && npx prisma migrate deploy && systemctl restart apps-adityaviki"
+          ssh root@139.59.8.45 "cd /var/www/apps.adityaviki.com && set -a && source .env && set +a && npx prisma migrate deploy && systemctl restart apps-adityaviki"
